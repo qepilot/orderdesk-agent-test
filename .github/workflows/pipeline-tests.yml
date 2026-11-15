@@ -1,0 +1,38 @@
+name: Pipeline tests
+
+# The claude-ready pipeline guards the developer agent; these tests guard the pipeline.
+# The agent itself may not change pipeline/ or this file (the path allow-list refuses it).
+
+on:
+  pull_request:
+    paths: ["pipeline/**", ".github/workflows/claude-develop.yml", ".github/workflows/pipeline-tests.yml"]
+  push:
+    branches: [main]
+    paths: ["pipeline/**", ".github/workflows/claude-develop.yml", ".github/workflows/pipeline-tests.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pipeline/requirements*.txt
+      - run: python -m pip install -r pipeline/requirements.txt -r pipeline/requirements-dev.txt pyyaml
+      - name: Workflow files are valid YAML with the expected trigger
+        run: |
+          python - <<'EOF'
+          import yaml
+          develop = yaml.safe_load(open(".github/workflows/claude-develop.yml"))
+          triggers = develop.get("on") or develop.get(True)
+          assert list(triggers) == ["issues"] and triggers["issues"]["types"] == ["labeled"], triggers
+          assert develop["jobs"]["develop"]["if"] == "github.event.label.name == 'claude-ready'"
+          print("claude-develop.yml triggers only on the label claude-ready")
+          EOF
+      - run: python -m pytest pipeline/tests -q
