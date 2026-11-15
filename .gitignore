@@ -1,0 +1,9 @@
+.env
+!workshop/repo/.env
+.venv/
+__pycache__/
+.pytest_cache/
+.ipynb_checkpoints/
+out/
+workshop/orderdesk.db
+*.sqlite

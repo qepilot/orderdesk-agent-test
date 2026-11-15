@@ -1,0 +1,22 @@
+# PostgreSQL 15 slow-query log excerpt, production primary, log_min_duration_statement = 500ms
+# Captured 2026-10-28 (synthetic data for the workshop; customer ids match the workshop database)
+2026-10-28 09:02:11.412 UTC [18233] LOG:  duration: 4213.508 ms  execute <unnamed>: SELECT id, customer_id, status, created_at FROM orders WHERE customer_id = $1 ORDER BY created_at DESC LIMIT $2
+2026-10-28 09:02:11.412 UTC [18233] DETAIL:  parameters: $1 = '42', $2 = '20'
+2026-10-28 09:02:19.087 UTC [18240] LOG:  duration: 3987.221 ms  execute <unnamed>: SELECT id, customer_id, status, created_at FROM orders WHERE customer_id = $1 ORDER BY created_at DESC LIMIT $2
+2026-10-28 09:02:19.087 UTC [18240] DETAIL:  parameters: $1 = '117', $2 = '20'
+2026-10-28 09:03:40.655 UTC [18251] LOG:  duration: 912.034 ms  execute <unnamed>: SELECT date(created_at) AS day, count(*) FROM orders WHERE status = 'shipped' GROUP BY 1 ORDER BY 1 DESC LIMIT 30
+2026-10-28 09:04:02.190 UTC [18233] LOG:  duration: 4406.770 ms  execute <unnamed>: SELECT id, customer_id, status, created_at FROM orders WHERE customer_id = $1 ORDER BY created_at DESC LIMIT $2
+2026-10-28 09:04:02.190 UTC [18233] DETAIL:  parameters: $1 = '42', $2 = '20'
+2026-10-28 09:05:27.733 UTC [18262] LOG:  duration: 4150.094 ms  execute <unnamed>: SELECT id, customer_id, status, created_at FROM orders WHERE customer_id = $1 ORDER BY created_at DESC LIMIT $2
+2026-10-28 09:05:27.733 UTC [18262] DETAIL:  parameters: $1 = '9', $2 = '20'
+2026-10-28 09:06:45.021 UTC [18270] LOG:  duration: 1320.556 ms  execute <unnamed>: SELECT id, name, email FROM customers WHERE lower(email) LIKE $1
+2026-10-28 09:06:45.021 UTC [18270] DETAIL:  parameters: $1 = '%okafor%'
+2026-10-28 09:07:13.498 UTC [18233] LOG:  duration: 4598.312 ms  execute <unnamed>: SELECT id, customer_id, status, created_at FROM orders WHERE customer_id = $1 ORDER BY created_at DESC LIMIT $2
+2026-10-28 09:07:13.498 UTC [18233] DETAIL:  parameters: $1 = '42', $2 = '20'
+2026-10-28 09:09:58.276 UTC [18281] LOG:  duration: 3876.940 ms  execute <unnamed>: SELECT id, customer_id, status, created_at FROM orders WHERE customer_id = $1 ORDER BY created_at DESC LIMIT $2
+2026-10-28 09:09:58.276 UTC [18281] DETAIL:  parameters: $1 = '254', $2 = '20'
+2026-10-28 09:11:30.842 UTC [18251] LOG:  duration: 934.118 ms  execute <unnamed>: SELECT date(created_at) AS day, count(*) FROM orders WHERE status = 'shipped' GROUP BY 1 ORDER BY 1 DESC LIMIT 30
+2026-10-28 09:12:44.605 UTC [18290] LOG:  duration: 4301.667 ms  execute <unnamed>: SELECT id, customer_id, status, created_at FROM orders WHERE customer_id = $1 ORDER BY created_at DESC LIMIT $2
+2026-10-28 09:12:44.605 UTC [18290] DETAIL:  parameters: $1 = '42', $2 = '20'
+2026-10-28 09:14:09.377 UTC [18233] LOG:  duration: 588.201 ms  execute <unnamed>: SELECT oi.id, oi.product_id, p.sku, p.name, oi.quantity, oi.unit_price_cents FROM order_items oi JOIN products p ON p.id = oi.product_id WHERE oi.order_id = $1 AND oi.status = 'active' ORDER BY oi.id
+2026-10-28 09:14:09.377 UTC [18233] DETAIL:  parameters: $1 = '2911840'

@@ -1,0 +1,86 @@
+[
+  {
+    "sha": "9c1f0aa",
+    "date": "2026-10-28T08:10:00Z",
+    "author": "qa-mirela",
+    "message": "Add failing test for discount rounding (issue #103)",
+    "files": [
+      "tests/test_pricing.py"
+    ]
+  },
+  {
+    "sha": "5d2e7b4",
+    "date": "2026-10-20T15:30:00Z",
+    "author": "dev-arjun",
+    "message": "Release 2.4.1: dependency updates",
+    "files": [
+      "orderdesk/__init__.py"
+    ]
+  },
+  {
+    "sha": "e83a6c1",
+    "date": "2026-10-06T09:00:00Z",
+    "author": "dev-arjun",
+    "message": "Release 2.4.0: rename orders.cust_id to customer_id, add status CHECK (migration 0005)",
+    "files": [
+      "migrations/0005_orders_rebuild.sql",
+      "orderdesk/repo.py",
+      "orderdesk/orders.py"
+    ]
+  },
+  {
+    "sha": "a41c9e2",
+    "date": "2026-08-18T10:20:00Z",
+    "author": "dev-sofia",
+    "message": "Release 2.3.0: customers can remove an item from a pending order (migration 0004)",
+    "files": [
+      "migrations/0004_item_status.sql",
+      "orderdesk/repo.py",
+      "orderdesk/orders.py",
+      "tests/test_orders.py"
+    ]
+  },
+  {
+    "sha": "3b7d915",
+    "date": "2026-06-30T13:45:00Z",
+    "author": "dev-sofia",
+    "message": "Release 2.2.0: admin order list with status filter and pagination",
+    "files": [
+      "orderdesk/api.py",
+      "orderdesk/orders.py",
+      "orderdesk/repo.py",
+      "tests/test_orders.py"
+    ]
+  },
+  {
+    "sha": "71e0d3f",
+    "date": "2026-05-12T11:05:00Z",
+    "author": "dev-arjun",
+    "message": "Move order SQL into repo.py (invoicing keeps its own queries for now)",
+    "files": [
+      "orderdesk/repo.py",
+      "orderdesk/orders.py"
+    ]
+  },
+  {
+    "sha": "0f4a2c8",
+    "date": "2026-03-03T16:00:00Z",
+    "author": "dev-arjun",
+    "message": "Release 2.0.0: invoices and payments (migration 0003)",
+    "files": [
+      "migrations/0003_invoices_payments.sql",
+      "orderdesk/invoicing.py",
+      "orderdesk/payments.py",
+      "tests/test_invoicing.py"
+    ]
+  },
+  {
+    "sha": "c2b8e60",
+    "date": "2025-11-17T10:00:00Z",
+    "author": "dev-arjun",
+    "message": "Release 1.1.0: indexes for order lookups (migration 0002)",
+    "files": [
+      "migrations/0002_indexes.sql"
+    ]
+  }
+]

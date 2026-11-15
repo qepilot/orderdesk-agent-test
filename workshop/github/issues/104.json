@@ -1,0 +1,19 @@
+{
+  "number": 104,
+  "title": "Admin order list: newest shipped orders are missing from page 1",
+  "author": "ops-daniela",
+  "created_at": "2026-11-09T07:50:00Z",
+  "labels": [
+    "bug",
+    "api"
+  ],
+  "body": "In the admin console, filter Shipped, page 1: order #7000 (shipped yesterday) is not there, and neither are the other orders from the last few days. Page 1 starts with much older orders. Going to page 2, 3, ... never shows them either.\n\nRequest: `GET /orders?status=shipped&page=1&per_page=20`\n\nThe automated tests for this endpoint are green.",
+  "comments": [
+    {
+      "author": "ops-daniela",
+      "created_at": "2026-11-09T08:15:00Z",
+      "body": "A colleague says she sometimes sees the same order on two different pages, but I could not reproduce that."
+    }
+  ],
+  "state": "open"
+}

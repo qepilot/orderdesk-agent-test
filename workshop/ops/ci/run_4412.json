@@ -1,0 +1,86 @@
+{
+  "run": 4412,
+  "branch": "main",
+  "commit": "9c1f0aa",
+  "trigger": "push",
+  "started_at": "2026-10-28T08:12:40Z",
+  "runner": "ci-linux-3 (TZ=Europe/Berlin)",
+  "summary": {
+    "passed": 13,
+    "failed": 1
+  },
+  "tests": [
+    {
+      "name": "test_invoice_total_matches_order_total",
+      "file": "tests/test_invoicing.py",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_invoice_applies_discount_code",
+      "file": "tests/test_invoicing.py",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_invoice_lists_lines",
+      "file": "tests/test_invoicing.py",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_invoice_issued_today",
+      "file": "tests/test_invoicing.py",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_order_total_sums_items",
+      "file": "tests/test_orders.py",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_order_total_with_discount_code",
+      "file": "tests/test_orders.py",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_order_total_ignores_removed_items",
+      "file": "tests/test_orders.py",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_list_orders_page_size",
+      "file": "tests/test_orders.py",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_list_orders_rejects_page_zero",
+      "file": "tests/test_orders.py",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_customer_orders_include_items",
+      "file": "tests/test_orders.py",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_line_total",
+      "file": "tests/test_pricing.py",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_no_discount",
+      "file": "tests/test_pricing.py",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_discount_round_numbers",
+      "file": "tests/test_pricing.py",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_discount_rounds_half_up",
+      "file": "tests/test_pricing.py",
+      "outcome": "failed",
+      "message": "assert 1695 == 1696\n +  where 1695 = apply_discount(1995, 15)",
+      "detail": "def test_discount_rounds_half_up():\n        # Added for issue #103: 19.95 with SAVE15 is 16.9575, which must be charged as 16.96.\n>       assert apply_discount(1995, 15) == 1696\nE       assert 1695 == 1696\nE        +  where 1695 = apply_discount(1995, 15)\ntests/test_pricing.py:19: AssertionError"
+    }
+  ]
+}

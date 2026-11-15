@@ -1,0 +1,60 @@
+diff --git a/orderdesk/repo.py b/orderdesk/repo.py
+--- a/orderdesk/repo.py
++++ b/orderdesk/repo.py
+@@ -52,3 +52,13 @@ def orders_for_customer(conn: sqlite3.Connection, customer_id: int, limit: int) -> list[sqlite3.Row]:
+         "WHERE customer_id = ? ORDER BY created_at DESC LIMIT ?",
+         (customer_id, limit),
+     ).fetchall()
++
++
++def search_orders(conn: sqlite3.Connection, q: str, limit: int) -> list[sqlite3.Row]:
++    sql = (
++        "SELECT o.id, o.status, o.created_at, c.name, c.email "
++        "FROM orders o JOIN customers c ON c.id = o.customer_id "
++        f"WHERE c.name LIKE '%{q}%' OR c.email LIKE '%{q}%' "
++        f"ORDER BY o.created_at DESC LIMIT {limit}"
++    )
++    return conn.execute(sql).fetchall()
+diff --git a/orderdesk/orders.py b/orderdesk/orders.py
+--- a/orderdesk/orders.py
++++ b/orderdesk/orders.py
+@@ -26,7 +26,7 @@ def get_order(conn: sqlite3.Connection, order_id: int) -> dict | None:
+         "status": order["status"],
+         "created_at": order["created_at"],
+         "items": [dict(item) for item in repo.active_items(conn, order_id)],
+-        "total_cents": order_total(conn, order_id),
++        "total": order_total(conn, order_id),
+     }
+ 
+ 
+@@ -45,3 +45,8 @@ def list_customer_orders(conn: sqlite3.Connection, customer_id: int, limit: int = 20) -> list[dict]:
+         order["items"] = [dict(item) for item in repo.active_items(conn, order["id"])]
+         order["total_cents"] = order_total(conn, order["id"])
+     return orders
++
++
++def search_orders(conn: sqlite3.Connection, q: str, limit: int = 50) -> list[dict]:
++    """Orders whose customer name or email contains q."""
++    return [dict(row) for row in repo.search_orders(conn, q, limit)]
+diff --git a/orderdesk/api.py b/orderdesk/api.py
+--- a/orderdesk/api.py
++++ b/orderdesk/api.py
+@@ -37,6 +37,10 @@ def list_orders(conn, path_args, query):
+     return 200, orders.list_orders(conn, query.get("status"), page, per_page)
+ 
+ 
++def search_orders(conn, path_args, query):
++    return 200, {"orders": orders.search_orders(conn, query.get("q", ""), int(query.get("limit", 50)))}
++
++
+ def get_order(conn, path_args, query):
+     order = orders.get_order(conn, int(path_args["id"]))
+     return (200, order) if order else (404, {"error": "order not found"})
+@@ -62,6 +66,7 @@ def customer_orders(conn, path_args, query):
+ ROUTES: list[tuple[str, re.Pattern, Handler]] = [
+     ("GET", re.compile(r"^/health$"), health),
+     ("GET", re.compile(r"^/orders$"), list_orders),
++    ("GET", re.compile(r"^/orders/search$"), search_orders),
+     ("GET", re.compile(r"^/orders/(?P<id>\d+)$"), get_order),
+     ("GET", re.compile(r"^/orders/(?P<id>\d+)/invoice$"), get_invoice),
+     ("GET", re.compile(r"^/orders/(?P<id>\d+)/payments$"), get_payments),

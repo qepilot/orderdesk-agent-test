@@ -1,0 +1,22 @@
+diff --git a/migrations/0006_orders_customer_index_and_channel.sql b/migrations/0006_orders_customer_index_and_channel.sql
+new file mode 100644
+--- /dev/null
++++ b/migrations/0006_orders_customer_index_and_channel.sql
+@@ -0,0 +1,8 @@
++-- 0006: bring back the customer index and record the sales channel (release 2.5.0)
++-- Runs in the normal deploy window (weekdays 14:00).
++
++CREATE INDEX idx_orders_customer ON orders (customer_id);
++
++ALTER TABLE orders ADD COLUMN channel TEXT NOT NULL;
++
++UPDATE orders SET channel = 'web';
+diff --git a/orderdesk/repo.py b/orderdesk/repo.py
+--- a/orderdesk/repo.py
++++ b/orderdesk/repo.py
+@@ -9,7 +9,7 @@ import sqlite3
+ def get_order(conn: sqlite3.Connection, order_id: int) -> sqlite3.Row | None:
+     return conn.execute(
+-        "SELECT id, customer_id, status, discount_code, created_at FROM orders WHERE id = ?", (order_id,)
++        "SELECT id, customer_id, status, discount_code, channel, created_at FROM orders WHERE id = ?", (order_id,)
+     ).fetchone()

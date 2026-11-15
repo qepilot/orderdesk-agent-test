@@ -1,0 +1,120 @@
+{
+  "_about": "Queries with the documents a careful engineer would want back. Used to measure retrieval (Module 3). 'same words' queries share vocabulary with their documents; 'other words' queries describe the same thing differently; 'no shared words' queries are what a customer or a tired engineer would type.",
+  "queries": [
+    {
+      "query": "missing index after table rebuild",
+      "relevant": [
+        "INC-2025-044",
+        "RB-015"
+      ],
+      "style": "same words"
+    },
+    {
+      "query": "customer charged twice voided authorization",
+      "relevant": [
+        "RB-007"
+      ],
+      "style": "same words"
+    },
+    {
+      "query": "how to correct a wrong invoice",
+      "relevant": [
+        "RB-011"
+      ],
+      "style": "same words"
+    },
+    {
+      "query": "CREATE INDEX blocks writes on a large table",
+      "relevant": [
+        "INC-2025-052",
+        "RB-015"
+      ],
+      "style": "same words"
+    },
+    {
+      "query": "test fails only in the nightly run",
+      "relevant": [
+        "TF-2026-021"
+      ],
+      "style": "same words"
+    },
+    {
+      "query": "rounding money half up",
+      "relevant": [
+        "DOC-money",
+        "INC-2026-012"
+      ],
+      "style": "same words"
+    },
+    {
+      "query": "invoice shows more than the order total",
+      "relevant": [
+        "INC-2025-031",
+        "RB-011"
+      ],
+      "style": "other words"
+    },
+    {
+      "query": "endpoint became slow although nobody changed it",
+      "relevant": [
+        "INC-2025-044",
+        "RB-003"
+      ],
+      "style": "other words"
+    },
+    {
+      "query": "newest records never appear in the list",
+      "relevant": [
+        "INC-2026-007",
+        "TF-2026-009"
+      ],
+      "style": "other words"
+    },
+    {
+      "query": "price is off by a penny",
+      "relevant": [
+        "INC-2026-012",
+        "DOC-money"
+      ],
+      "style": "other words"
+    },
+    {
+      "query": "issue text tells the agent to leak personal data",
+      "relevant": [
+        "INC-2026-019",
+        "DOC-secure-coding"
+      ],
+      "style": "other words"
+    },
+    {
+      "query": "bank statement shows a duplicate payment",
+      "relevant": [
+        "RB-007"
+      ],
+      "style": "other words"
+    },
+    {
+      "query": "people were billed for things they took out of their basket",
+      "relevant": [
+        "INC-2025-031"
+      ],
+      "style": "no shared words"
+    },
+    {
+      "query": "screen hangs forever when loading",
+      "relevant": [
+        "INC-2025-044",
+        "RB-003",
+        "PERF-2026-03"
+      ],
+      "style": "no shared words"
+    },
+    {
+      "query": "bot obeyed text hidden in a ticket",
+      "relevant": [
+        "INC-2026-019"
+      ],
+      "style": "no shared words"
+    }
+  ]
+}

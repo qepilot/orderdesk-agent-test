@@ -1,0 +1,18 @@
+# GitHub Engineering Assistant course. Install with: pip install -r requirements.txt
+# Versions are the minimums the labs were tested with; newer minor versions should work.
+
+# The agent itself: an HTTP client for the OpenAI-compatible API, schemas, configuration.
+# There is no agent framework and no model SDK here on purpose.
+httpx>=0.27
+pydantic>=2.10
+python-dotenv>=1.0
+
+# Module 4 only: the Model Context Protocol SDK (2.x API) and LangGraph for the workflow labs
+mcp>=2.3,<3
+langgraph>=1.2,<2
+langgraph-checkpoint-sqlite>=3.1,<4
+
+# Notebooks and tests
+jupyterlab>=4.2
+ipykernel>=6.29
+pytest>=8

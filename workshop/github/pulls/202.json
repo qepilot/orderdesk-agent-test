@@ -1,0 +1,26 @@
+{
+  "number": 202,
+  "title": "Bring back the customer index on orders; add orders.channel",
+  "author": "dev-arjun",
+  "created_at": "2026-11-06T09:30:00Z",
+  "base": "main",
+  "head": "db/orders-index-channel",
+  "linked_issues": [
+    102
+  ],
+  "body": "Fixes #102 by indexing `orders.customer_id` again.\n\nWhile touching the table this also adds the `channel` column that marketing asked for (web / app / phone); the application will start writing it in the next release.\n\nPlan: run in the normal deploy window (weekdays 14:00), rolling deploy as usual.",
+  "files": [
+    {
+      "path": "migrations/0006_orders_customer_index_and_channel.sql",
+      "additions": 8,
+      "deletions": 0
+    },
+    {
+      "path": "orderdesk/repo.py",
+      "additions": 1,
+      "deletions": 1
+    }
+  ],
+  "checks": "13 passed, 1 failed (test_discount_rounds_half_up, unrelated: issue #103)",
+  "state": "open"
+}

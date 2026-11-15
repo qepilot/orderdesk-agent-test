@@ -1,0 +1,13 @@
+{
+  "number": 106,
+  "title": "Customer #88 says they were charged twice for order #6920",
+  "author": "support-lena",
+  "created_at": "2026-11-03T11:20:00Z",
+  "labels": [
+    "billing",
+    "customer-report"
+  ],
+  "body": "Customer #88 sent a screenshot of their banking app with two entries of $80.50 from us on November 1st, both for order #6920. They want one of them refunded.\n\nPlease check what we actually charged and tell me what to answer.",
+  "comments": [],
+  "state": "open"
+}

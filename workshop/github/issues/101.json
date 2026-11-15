@@ -1,0 +1,19 @@
+{
+  "number": 101,
+  "title": "Customer #123: invoice total does not match order total",
+  "author": "support-lena",
+  "created_at": "2026-11-02T09:12:00Z",
+  "labels": [
+    "bug",
+    "billing"
+  ],
+  "body": "Customer #123 has an order totaling $150, but the invoice shows $175. Investigate the discrepancy.\n\n- Order: #6800\n- What the customer sees under \"My orders\": $150.00\n- What the invoice PDF says: $175.00\n\nThe customer wants to know which amount is right and whether they were overcharged. This is the third ticket like this in two weeks, so it may not be a one-off.",
+  "comments": [
+    {
+      "author": "finance-omar",
+      "created_at": "2026-11-02T10:40:00Z",
+      "body": "Please also tell us how many invoices are affected. We cannot edit issued invoices; corrections need a credit note (see the finance runbook)."
+    }
+  ],
+  "state": "open"
+}

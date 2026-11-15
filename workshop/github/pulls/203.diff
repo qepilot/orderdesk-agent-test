@@ -1,0 +1,80 @@
+diff --git a/orderdesk/pricing.py b/orderdesk/pricing.py
+--- a/orderdesk/pricing.py
++++ b/orderdesk/pricing.py
+@@ -3,6 +3,9 @@
+ from __future__ import annotations
+ 
++BULK_THRESHOLD = 10
++BULK_PERCENT = 5
++
+ 
+ def line_total(quantity: int, unit_price_cents: int) -> int:
+     return quantity * unit_price_cents
+@@ -13,3 +16,10 @@ def apply_discount(subtotal_cents: int, percent_off: int) -> int:
+     if percent_off <= 0:
+         return subtotal_cents
+     return int(subtotal_cents * (100 - percent_off) / 100)
++
++
++def bulk_discount_percent(total_units: int) -> int:
++    """Extra percent off for large orders."""
++    if total_units > BULK_THRESHOLD:
++        return BULK_PERCENT
++    return 0
+diff --git a/orderdesk/repo.py b/orderdesk/repo.py
+--- a/orderdesk/repo.py
++++ b/orderdesk/repo.py
+@@ -24,6 +24,13 @@ def active_items(conn: sqlite3.Connection, order_id: int) -> list[sqlite3.Row]:
+     ).fetchall()
+ 
+ 
++def total_units(conn: sqlite3.Connection, order_id: int) -> int:
++    row = conn.execute(
++        "SELECT COALESCE(SUM(quantity), 0) AS units FROM order_items WHERE order_id = ?", (order_id,)
++    ).fetchone()
++    return row["units"]
++
++
+ def discount_percent(conn: sqlite3.Connection, order_id: int) -> int:
+     row = conn.execute(
+         "SELECT d.percent_off FROM orders o JOIN discount_codes d ON d.code = o.discount_code "
+diff --git a/orderdesk/orders.py b/orderdesk/orders.py
+--- a/orderdesk/orders.py
++++ b/orderdesk/orders.py
+@@ -5,7 +5,7 @@ from __future__ import annotations
+ import sqlite3
+ 
+ from . import repo
+-from .pricing import apply_discount, line_total
++from .pricing import apply_discount, bulk_discount_percent, line_total
+ 
+ 
+ def order_total(conn: sqlite3.Connection, order_id: int) -> int:
+@@ -13,5 +13,6 @@ def order_total(conn: sqlite3.Connection, order_id: int) -> int:
+     """What the customer owes for an order, in cents. Removed items do not count."""
+     items = repo.active_items(conn, order_id)
+     subtotal = sum(line_total(item["quantity"], item["unit_price_cents"]) for item in items)
+-    return apply_discount(subtotal, repo.discount_percent(conn, order_id))
++    percent = repo.discount_percent(conn, order_id) + bulk_discount_percent(repo.total_units(conn, order_id))
++    return apply_discount(subtotal, percent)
+diff --git a/tests/test_pricing.py b/tests/test_pricing.py
+--- a/tests/test_pricing.py
++++ b/tests/test_pricing.py
+@@ -1,4 +1,4 @@
+-from orderdesk.pricing import apply_discount, line_total
++from orderdesk.pricing import apply_discount, bulk_discount_percent, line_total
+ 
+ 
+ def test_line_total():
+@@ -17,3 +17,11 @@ def test_discount_round_numbers():
+ def test_discount_rounds_half_up():
+     # Added for issue #103: 19.95 with SAVE15 is 16.9575, which must be charged as 16.96.
+     assert apply_discount(1995, 15) == 1696
++
++
++def test_bulk_discount_for_large_order():
++    assert bulk_discount_percent(12) == 5
++
++
++def test_no_bulk_discount_for_small_order():
++    assert bulk_discount_percent(3) == 0

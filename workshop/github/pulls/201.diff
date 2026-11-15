@@ -1,0 +1,15 @@
+diff --git a/orderdesk/invoicing.py b/orderdesk/invoicing.py
+--- a/orderdesk/invoicing.py
++++ b/orderdesk/invoicing.py
+@@ -10,9 +10,10 @@ from .pricing import apply_discount
+ 
+ INVOICE_SUBTOTAL_SQL = """
+     SELECT COALESCE(SUM(quantity * unit_price_cents), 0) AS subtotal
+     FROM order_items
+     WHERE order_id = ?
++      AND status = 'active'
+ """
+ 
+ INVOICE_LINES_SQL = """
+     SELECT oi.id, p.sku, p.name, oi.quantity, oi.unit_price_cents
+     FROM order_items oi

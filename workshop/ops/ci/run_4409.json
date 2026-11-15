@@ -1,0 +1,82 @@
+{
+  "run": 4409,
+  "branch": "main",
+  "commit": "5d2e7b4",
+  "trigger": "schedule (nightly, 00:30 Europe/Berlin)",
+  "started_at": "2026-10-27T23:30:05Z",
+  "runner": "ci-linux-3 (TZ=Europe/Berlin)",
+  "summary": {
+    "passed": 12,
+    "failed": 1
+  },
+  "note": "Same test passed in runs 4401-4408 (daytime pushes) and failed in the nightly runs 4395, 4402, 4409.",
+  "tests": [
+    {
+      "name": "test_invoice_total_matches_order_total",
+      "file": "tests/test_invoicing.py",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_invoice_applies_discount_code",
+      "file": "tests/test_invoicing.py",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_invoice_lists_lines",
+      "file": "tests/test_invoicing.py",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_invoice_issued_today",
+      "file": "tests/test_invoicing.py",
+      "outcome": "failed",
+      "message": "AssertionError: assert '2026-10-27' == '2026-10-28'",
+      "detail": "    def test_invoice_issued_today(conn):\n        add_order(conn, 23, [(1, 1, 10000)])\n        invoice = invoicing.issue_invoice(conn, 23)\n>       assert invoice[\"issued_at\"][:10] == date.today().isoformat()\nE       AssertionError: assert '2026-10-27' == '2026-10-28'\ntests/test_invoicing.py:28: AssertionError"
+    },
+    {
+      "name": "test_order_total_sums_items",
+      "file": "tests/test_orders.py",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_order_total_with_discount_code",
+      "file": "tests/test_orders.py",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_order_total_ignores_removed_items",
+      "file": "tests/test_orders.py",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_list_orders_page_size",
+      "file": "tests/test_orders.py",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_list_orders_rejects_page_zero",
+      "file": "tests/test_orders.py",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_customer_orders_include_items",
+      "file": "tests/test_orders.py",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_line_total",
+      "file": "tests/test_pricing.py",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_no_discount",
+      "file": "tests/test_pricing.py",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_discount_round_numbers",
+      "file": "tests/test_pricing.py",
+      "outcome": "passed"
+    }
+  ]
+}
