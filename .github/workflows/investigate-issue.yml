@@ -1,0 +1,91 @@
+name: Investigate issue
+
+# Runs the engineering assistant on an issue and posts its findings as a comment.
+#
+# Who can start a run (issue text is untrusted input, and every run costs model tokens):
+#   - a new issue opened by the repo owner, a member of the organisation, or a collaborator;
+#   - any issue, when someone with triage rights adds the label `investigate`;
+#   - a manual run from the Actions tab (workflow_dispatch) with the issue number.
+# Issues opened by anyone else are left alone until a maintainer labels them.
+#
+# One-time setup: see docs/auto-trigger.md (a repository secret named CLAUDE_CODE_OAUTH_TOKEN).
+
+on:
+  issues:
+    types: [opened, labeled]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: Issue number to investigate
+        required: true
+        type: string
+
+permissions:
+  contents: read     # read the repository and its commit list
+  issues: write      # read the issue and post the findings as a comment
+
+concurrency:
+  group: investigate-${{ github.event.issue.number || inputs.issue_number }}
+  cancel-in-progress: false
+
+jobs:
+  investigate:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.action == 'opened' &&
+        contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association)) ||
+      (github.event.action == 'labeled' && github.event.label.name == 'investigate')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # Passed through the environment, never pasted into the script text.
+      ISSUE_NUMBER: ${{ github.event.issue.number || inputs.issue_number }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-agent.txt
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install the agent and the Claude Code CLI
+        run: |
+          pip install -r requirements-agent.txt
+          npm install -g @anthropic-ai/claude-code
+
+      - name: Check the credential and the issue number
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: |
+          if [ -z "$CLAUDE_CODE_OAUTH_TOKEN" ]; then
+            echo "::error::Secret CLAUDE_CODE_OAUTH_TOKEN is not set. See docs/auto-trigger.md."
+            exit 1
+          fi
+          case "$ISSUE_NUMBER" in
+            ''|*[!0-9]*) echo "::error::Issue number is not a number: '$ISSUE_NUMBER'"; exit 1 ;;
+          esac
+
+      - name: Investigate and post the findings
+        env:
+          LLM_PROVIDER: claude-code
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AGENT_MAX_STEPS: "60"
+          AGENT_MAX_SECONDS: "900"
+          AGENT_MAX_FINAL_REJECTIONS: "5"
+          AGENT_MAX_TOTAL_TOKENS: "800000"
+        run: python -m assistant investigate "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --post-comment
+
+      - name: Keep the trace
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trace-issue-${{ env.ISSUE_NUMBER }}
+          path: out/traces/
+          if-no-files-found: ignore
+          retention-days: 14
