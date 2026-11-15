@@ -41,7 +41,7 @@ The prompt asks the agent to follow these rules too, but nothing above relies on
 1. The secret `CLAUDE_CODE_OAUTH_TOKEN` must exist (the investigate workflow already uses it).
 2. **Settings, Actions, General, Workflow permissions: tick "Allow GitHub Actions to create and approve pull requests".** Without it the publish step cannot open a pull request.
 3. Merge this change to the default branch (issue events use the workflow on the default branch).
-4. Optional repository variables: `CLAUDE_PIPELINE_MODEL`, `CLAUDE_PIPELINE_BUDGET_USD` (default 5), `CLAUDE_PIPELINE_MAX_RUNS_PER_DAY` (default 6), `CLAUDE_PIPELINE_SANDBOX` (set to `0` only to debug the sandbox step; not recommended).
+4. Optional repository variables: `CLAUDE_PIPELINE_MODEL`, `CLAUDE_PIPELINE_BUDGET_USD` (default 5), `CLAUDE_PIPELINE_MAX_RUNS_PER_DAY` (default 6), `CLAUDE_PIPELINE_SANDBOX` (set to `0` only to debug the sandbox step; not recommended), `CLAUDE_PIPELINE_SANDBOX_MODE` (`strict`, the default, or `weaker-nested`; see below).
 
 ## Using it
 
@@ -50,9 +50,15 @@ The prompt asks the agent to follow these rules too, but nothing above relies on
 3. Watch the status comment. Review the pull request: read the acceptance table, the gate table and the evidence, then merge. Merging closes the issue, which unblocks the next ones.
 4. To retry: close the draft pull request, remove the label `claude-ready` and add it again.
 
+## The sandbox self-test
+
+Before any development starts, the pipeline runs the real Claude Code sandbox with the agent's own settings and asks it to run one harmless command that leaves a mark on disk. If the mark is there, commands can run in the sandbox. If not, the run stops with the literal error posted on the issue; it never falls back to running unsandboxed. (A bare `bwrap` check is not enough: it passed on a runner where the agent's commands still failed.)
+
+If `strict` fails, the self-test also tries the `weaker-nested` mode and reports whether it would work. That mode isolates less and is **never used unless you set the repository variable `CLAUDE_PIPELINE_SANDBOX_MODE` to `weaker-nested`**.
+
 ## What is not verified
 
-- **The workflow on GitHub's runners.** In particular: that `bubblewrap` works on `ubuntu-latest` (the workflow installs it, relaxes the AppArmor user-namespace restriction, and stops if the sandbox check fails), and that the OAuth token authenticates the CLI in the developer and evaluator steps.
+- **The develop, evaluate and publish steps on GitHub's runners.** The first real run (on `ubuntu-26.04`) passed preflight and the branch setup, but the agent's shell commands failed in the sandbox, so it stopped without running tests. The self-test above exists to diagnose and fail fast on exactly that.
 - **The publish step against GitHub.** Pushing with the extraheader and opening the pull request are unit tested with fakes, not run for real.
 - **Quality on real issues.** The smoke test was a tiny function. Larger issues may need more than one repair attempt or a higher budget.
 - **Pull requests opened with `GITHUB_TOKEN` do not trigger other workflows**, so `restaurant-ci.yml` will not run on them. The pipeline runs the same gates itself before opening the pull request; to also get GitHub's own checks on those pull requests, use a personal access token or an app for the publish step.
