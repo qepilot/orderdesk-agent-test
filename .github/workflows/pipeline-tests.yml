@@ -5,10 +5,10 @@ name: Pipeline tests
 
 on:
   pull_request:
-    paths: ["pipeline/**", ".github/workflows/claude-develop.yml", ".github/workflows/pipeline-tests.yml"]
+    paths: ["pipeline/**", ".github/workflows/**"]
   push:
     branches: [main]
-    paths: ["pipeline/**", ".github/workflows/claude-develop.yml", ".github/workflows/pipeline-tests.yml"]
+    paths: ["pipeline/**", ".github/workflows/**"]
 
 permissions:
   contents: read
@@ -24,7 +24,9 @@ jobs:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: pipeline/requirements*.txt
-      - run: python -m pip install -r pipeline/requirements.txt -r pipeline/requirements-dev.txt pyyaml
+      - run: python -m pip install -r pipeline/requirements.txt -r pipeline/requirements-dev.txt pyyaml actionlint-py
+      - name: Lint every workflow file (GitHub rejects an invalid file without telling anyone)
+        run: actionlint .github/workflows/*.yml
       - name: Workflow files are valid YAML with the expected trigger
         run: |
           python - <<'EOF'
