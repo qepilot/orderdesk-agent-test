@@ -1,0 +1,5 @@
+# Quality tools the gates run against restaurant/ code.
+ruff>=0.6
+pytest>=8
+pytest-cov>=5
+pip-audit>=2.7
