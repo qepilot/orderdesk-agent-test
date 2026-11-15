@@ -1,0 +1,5 @@
+# Just what `python -m assistant` needs to run the agent (used by the GitHub Action).
+# The full requirements.txt adds the notebooks, LangGraph and the MCP SDK for the course labs.
+httpx>=0.27
+pydantic>=2.10
+python-dotenv>=1.0
