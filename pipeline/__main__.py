@@ -17,6 +17,7 @@ from . import evaluator, gates as gates_mod
 from .agent import develop
 from .gh import GitHub
 from .preflight import run_preflight
+from .selftest import describe_failure, run_selftest
 from .publish import publish
 from .report import MARKER, status_comment
 
@@ -72,13 +73,26 @@ def cmd_develop(args) -> int:
     context = _load("context.json")
     feedback = _load("gates.json") if args.attempt > 1 and (_out() / "gates.json").exists() else None
     summary = develop(context, args.attempt, _out(), os.getcwd(), feedback=feedback,
-                      sandbox=os.environ.get("PIPELINE_SANDBOX", "1") != "0", model=os.environ.get("PIPELINE_MODEL", ""),
+                      sandbox=os.environ.get("PIPELINE_SANDBOX", "1") != "0",
+                      sandbox_mode=os.environ.get("PIPELINE_SANDBOX_MODE", "strict"), model=os.environ.get("PIPELINE_MODEL", ""),
                       budget_usd=os.environ.get("PIPELINE_BUDGET_USD", "5"),
                       timeout=int(os.environ.get("PIPELINE_AGENT_TIMEOUT", "1500")))
     _set_output("ok", str(summary["ok"]).lower())
     _set_output("blocked", str(summary["blocked"]).lower())
     print(json.dumps({k: v for k, v in summary.items() if k != "final_message"}))
     return 0
+
+
+def cmd_selftest(_args) -> int:
+    mode = os.environ.get("PIPELINE_SANDBOX_MODE", "strict")
+    report = run_selftest(mode, os.getcwd(), _out())
+    for result in report["results"]:
+        print(f"{result['mode']}: {'ok' if result['ok'] else 'FAILED'}")
+        if not result["ok"]:
+            print("  model report:", result["model_report"][:600].replace("\n", " "))
+            print("  stderr:", result["stderr"][:400].replace("\n", " "))
+    _set_output("sandbox_ok", str(report["ok"]).lower())
+    return 0 if report["ok"] else 1
 
 
 def cmd_gates(_args) -> int:
@@ -125,6 +139,10 @@ def cmd_fail(args) -> int:
         message = json.loads(developer[-1].read_text(encoding="utf-8"))["summary"].get("final_message", "")
         if "BLOCKED:" in message.upper():
             reason = "the agent needs a decision: " + message[message.upper().index("BLOCKED:"):][:1500]
+    if (_out() / "selftest.json").exists():
+        selftest = json.loads((_out() / "selftest.json").read_text(encoding="utf-8"))
+        if not selftest.get("ok"):
+            reason = describe_failure(selftest)
     gh.ensure_label("needs-human", "d93f0b", "The automation needs a person to look at this")
     gh.upsert_comment(number, status_comment("stopped, needs a person", _run_url(), reason), MARKER)
     gh.add_labels(number, ["needs-human"])
@@ -139,6 +157,7 @@ def main(argv: list[str] | None = None) -> int:
     develop_parser = commands.add_parser("develop")
     develop_parser.add_argument("--attempt", type=int, default=1)
     develop_parser.set_defaults(fn=cmd_develop)
+    commands.add_parser("selftest").set_defaults(fn=cmd_selftest)
     commands.add_parser("gates").set_defaults(fn=cmd_gates)
     commands.add_parser("evaluate").set_defaults(fn=cmd_evaluate)
     commands.add_parser("publish").set_defaults(fn=cmd_publish)

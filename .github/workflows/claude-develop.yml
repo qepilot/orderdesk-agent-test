@@ -41,6 +41,7 @@ jobs:
       PIPELINE_BUDGET_USD: ${{ vars.CLAUDE_PIPELINE_BUDGET_USD || '5' }}
       PIPELINE_MAX_RUNS_PER_DAY: ${{ vars.CLAUDE_PIPELINE_MAX_RUNS_PER_DAY || '6' }}
       PIPELINE_SANDBOX: ${{ vars.CLAUDE_PIPELINE_SANDBOX || '1' }}
+      PIPELINE_SANDBOX_MODE: ${{ vars.CLAUDE_PIPELINE_SANDBOX_MODE || 'strict' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -81,9 +82,11 @@ jobs:
         run: |
           if [ -f restaurant/requirements.txt ]; then python -m pip install -r restaurant/requirements.txt; fi
 
-      - name: Check that the command sandbox works (stops here rather than run unsandboxed)
+      - name: Sandbox self-test (runs a real command through the agent's sandbox; stops here rather than run unsandboxed)
         if: steps.pre.outputs.proceed == 'true' && env.PIPELINE_SANDBOX != '0'
-        run: bwrap --ro-bind / / --dev /dev --unshare-pid true
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: python -m pipeline selftest
 
       # The agent steps get the model credential and nothing else: no GitHub token.
       - name: Develop (attempt 1)

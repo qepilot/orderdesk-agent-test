@@ -56,14 +56,19 @@ def clean_env(environ: dict[str, str]) -> dict[str, str]:
     return env
 
 
-def build_settings(hook_command: str, *, sandbox: bool = True) -> dict:
+# "strict" is the default and the only mode that is never chosen automatically. "weaker-nested" is for environments where the
+# kernel will not allow the full set of namespaces; it is used only when the repository variable explicitly asks for it.
+SANDBOX_MODES = {"strict": {}, "weaker-nested": {"enableWeakerNestedSandbox": True}}
+
+
+def build_settings(hook_command: str, *, sandbox: bool = True, sandbox_extra: dict | None = None) -> dict:
     settings: dict = {
         "permissions": {"allow": list(ALLOWED_TOOLS), "deny": ["WebFetch", "WebSearch"]},
         "hooks": {"PreToolUse": [{"matcher": "*", "hooks": [{"type": "command", "command": hook_command, "timeout": 15}]}]},
     }
     if sandbox:
         settings["sandbox"] = {"enabled": True, "allowUnsandboxedCommands": False,
-                               "network": {"allowedDomains": PACKAGE_INDEX_DOMAINS}}
+                               "network": {"allowedDomains": PACKAGE_INDEX_DOMAINS}, **(sandbox_extra or {})}
     return settings
 
 
@@ -107,11 +112,11 @@ def run_claude(command: list[str], prompt: str, *, cwd: str, env: dict[str, str]
 
 
 def develop(context: dict, attempt: int, out_dir: Path, root: str, *, feedback: dict | None = None, sandbox: bool = True,
-            model: str = "", budget_usd: str = "5", timeout: int = 1500, environ: dict | None = None) -> dict:
+            sandbox_mode: str = "strict", model: str = "", budget_usd: str = "5", timeout: int = 1500, environ: dict | None = None) -> dict:
     out_dir.mkdir(parents=True, exist_ok=True)
     hook = f"{sys.executable} -m pipeline.hook"
     settings_path = out_dir / f"settings-attempt-{attempt}.json"
-    settings_path.write_text(json.dumps(build_settings(hook, sandbox=sandbox), indent=2), encoding="utf-8")
+    settings_path.write_text(json.dumps(build_settings(hook, sandbox=sandbox, sandbox_extra=SANDBOX_MODES[sandbox_mode]), indent=2), encoding="utf-8")
     env = clean_env(dict(os.environ if environ is None else environ))
     env["PIPELINE_REPO_ROOT"] = os.path.realpath(root)
     env["PYTHONPATH"] = os.path.realpath(root)          # lets the hook import the pipeline package
