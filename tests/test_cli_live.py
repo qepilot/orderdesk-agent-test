@@ -43,9 +43,9 @@ def test_repo_run_posts_the_findings(monkeypatch):
         def __init__(self, repository, **kwargs):
             self.repository, self.allow_comments = repository, kwargs.get("allow_comments")
 
-        def post_comment(self, number, body):
-            posted.append((self.repository, number, body, self.allow_comments))
-            return {"number": number, "url": "https://example.test/c/1"}
+        def upsert_comment(self, number, body, marker, legacy=()):
+            posted.append((self.repository, number, body, self.allow_comments, marker))
+            return {"number": number, "url": "https://example.test/c/1", "updated": False}
 
     seen = {}
 
@@ -58,8 +58,9 @@ def test_repo_run_posts_the_findings(monkeypatch):
     monkeypatch.setattr(cli, "run_one", fake_run_one)
     assert cli.main(["investigate", "7", "--repo", "o/n", "--post-comment"]) == 0
     assert seen["github"].repository == "o/n"
-    repository, number, body, allow = posted[0]
+    repository, number, body, allow, marker = posted[0]
     assert (repository, number, allow) == ("o/n", 7, True) and "bob@example.com" not in body
+    assert marker == cli.COMMENT_MARKER
 
 
 def test_repo_run_without_post_comment_posts_nothing(monkeypatch):
@@ -67,7 +68,7 @@ def test_repo_run_without_post_comment_posts_nothing(monkeypatch):
         def __init__(self, repository, **kwargs):
             assert kwargs.get("allow_comments") is False
 
-        def post_comment(self, *args):
+        def upsert_comment(self, *args):
             raise AssertionError("must not post")
 
     monkeypatch.setattr(cli, "using_live_model", lambda: True)
