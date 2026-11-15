@@ -90,7 +90,7 @@ def cmd_selftest(_args) -> int:
         print(f"{result['mode']}: {'ok' if result['ok'] else 'FAILED'}")
         if not result["ok"]:
             print("  model report:", result["model_report"][:600].replace("\n", " "))
-            print("  stderr:", result["stderr"][:400].replace("\n", " "))
+            print("  stderr:", result["stderr"][:1500].replace("\n", " "))
     _set_output("sandbox_ok", str(report["ok"]).lower())
     return 0 if report["ok"] else 1
 

@@ -34,7 +34,7 @@ def probe(mode: str, root: str, out_dir: Path, *, runner=run_claude, environ: di
     settings_path.write_text(json.dumps(build_settings(f"{sys.executable} -m pipeline.hook", sandbox=True,
                                                        sandbox_extra=SANDBOX_MODES[mode]), indent=2), encoding="utf-8")
     cli = ["claude", "-p", "--output-format", "json", "--permission-mode", "dontAsk", "--tools", "Bash",
-           "--settings", str(settings_path), "--setting-sources", "user", "--no-session-persistence",
+           "--allowedTools", "Bash", "--settings", str(settings_path), "--setting-sources", "user", "--no-session-persistence",
            "--max-budget-usd", "0.5"]
     env = clean_env(dict(os.environ if environ is None else environ))
     env["PIPELINE_REPO_ROOT"] = os.path.realpath(root)
