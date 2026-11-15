@@ -51,7 +51,7 @@ def clean_env(environ: dict[str, str]) -> dict[str, str]:
             continue
         else:
             env[name] = value
-    env["CLAUDE_CODE_SUBPROCESS_ENV_SCRUB"] = "1"
+    env["CLAUDE_CODE_SUBPROCESS_ENV_SCRUB"] = environ.get("PIPELINE_ENV_SCRUB", "1")   # "0" only for diagnosis
     env.setdefault("CI", "true")
     return env
 
@@ -74,7 +74,7 @@ def build_settings(hook_command: str, *, sandbox: bool = True, sandbox_extra: di
 
 def build_command(settings_path: str, *, model: str = "", budget_usd: str = "5", executable: str = "claude") -> list[str]:
     command = [executable, "-p", "--output-format", "json", "--permission-mode", "dontAsk",
-               "--tools", ",".join(ALLOWED_TOOLS), "--settings", settings_path, "--setting-sources", "user",
+               "--tools", ",".join(ALLOWED_TOOLS), "--allowedTools", ",".join(ALLOWED_TOOLS), "--settings", settings_path, "--setting-sources", "user",
                "--append-system-prompt", SYSTEM_PROMPT, "--no-session-persistence", "--max-budget-usd", str(budget_usd)]
     if model:
         command += ["--model", model]
