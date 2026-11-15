@@ -56,6 +56,10 @@ Before any development starts, the pipeline runs the real Claude Code sandbox wi
 
 If `strict` fails, the self-test also tries the `weaker-nested` mode and reports whether it would work. That mode isolates less and is **never used unless you set the repository variable `CLAUDE_PIPELINE_SANDBOX_MODE` to `weaker-nested`**.
 
+### Runner image
+
+The workflow is pinned to `ubuntu-24.04`, not `ubuntu-latest`. Diagnosed with a temporary matrix (3 images, credential scrubbing on and off): the strict sandbox with scrubbing passes the self-test on 24.04 and 22.04, and fails on the 26.04 image that `ubuntu-latest` now points to (`apply-seccomp: write /proc/self/setgroups (nested userns is capability-restricted)`), even though a bare `bwrap` works there. The sandbox also needs `socat` as well as `bubblewrap`; both are installed. Move the pin forward only after the self-test passes on the newer image.
+
 ## What is not verified
 
 - **The develop, evaluate and publish steps on GitHub's runners.** The first real run (on `ubuntu-26.04`) passed preflight and the branch setup, but the agent's shell commands failed in the sandbox, so it stopped without running tests. The self-test above exists to diagnose and fail fast on exactly that.

@@ -29,7 +29,9 @@ concurrency:
 jobs:
   develop:
     if: github.event.label.name == 'claude-ready'
-    runs-on: ubuntu-latest
+    # Pinned on purpose: on the ubuntu-latest image (26.04) the sandbox cannot run commands (apply-seccomp: nested userns
+    # is capability-restricted). On 24.04 the strict sandbox with credential scrubbing passes the self-test.
+    runs-on: ubuntu-24.04
     timeout-minutes: 75
     env:
       ISSUE_NUMBER: ${{ github.event.issue.number }}
@@ -62,7 +64,7 @@ jobs:
         run: |
           python -m pip install -r pipeline/requirements.txt -r pipeline/requirements-dev.txt
           npm install -g @anthropic-ai/claude-code
-          sudo apt-get update -qq && sudo apt-get install -y -qq bubblewrap
+          sudo apt-get update -qq && sudo apt-get install -y -qq bubblewrap socat
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
 
       - name: Preflight
