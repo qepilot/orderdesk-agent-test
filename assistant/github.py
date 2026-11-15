@@ -113,6 +113,34 @@ class LiveGitHub:
             raise GitHubError(f"GitHub refused the comment: HTTP {response.status_code}")
         return {"number": number, "url": response.json().get("html_url", "")}
 
+    def upsert_comment(self, number: int, body: str, marker: str, legacy: tuple[str, ...] = ()) -> dict:
+        """Posts the comment, or edits the one an earlier run left, so reruns do not stack comments.
+
+        An earlier comment counts only if it carries the marker AND was written by a bot account: anyone can paste the
+        marker into their own comment, and we must not overwrite a person's words. The newest match is edited.
+        `legacy` lists text that older comments of ours ended with, from before the marker existed."""
+        if not self.allow_comments:
+            raise GitHubError("this client is read-only; create it with allow_comments=True to post")
+        full = body if marker in body else f"{marker}\n{body}"
+        existing = None
+        for page in range(1, 11):                      # up to 1000 comments, plenty for one issue
+            batch = self._get(f"/issues/{number}/comments", params={"per_page": 100, "page": page})
+            existing = next((c for c in reversed(batch)
+                             if any(m in (c.get("body") or "") for m in (marker, *legacy))
+                             and (c.get("user") or {}).get("type") == "Bot"),
+                            existing)
+            if len(batch) < 100:
+                break
+        if existing:
+            response = self._client.patch(f"/issues/comments/{existing['id']}", json={"body": full})
+            updated = True
+        else:
+            response = self._client.post(f"/issues/{number}/comments", json={"body": full})
+            updated = False
+        if response.status_code >= 400:
+            raise GitHubError(f"GitHub refused the comment: HTTP {response.status_code}")
+        return {"number": number, "url": response.json().get("html_url", ""), "updated": updated}
+
     def _get(self, path: str, params: dict | None = None):
         response = self._client.get(path, params=params)
         if response.status_code == 404:

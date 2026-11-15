@@ -47,6 +47,10 @@ def run_one(kind: str, number: int, role: str | None, quiet: bool = False, githu
     return result, tracer
 
 
+COMMENT_MARKER = "<!-- engineering-assistant:investigation -->"   # lets a rerun find and edit its own comment
+LEGACY_COMMENT_TAILS = ("_Drafted by the engineering assistant",)     # comments posted before the marker existed
+
+
 def comment_body(result) -> str:
     """The text posted back to the issue. Redacted again here: this is the one place the model's words leave the harness."""
     if result.findings is not None:
@@ -106,11 +110,11 @@ def main(argv: list[str] | None = None) -> int:
     print(f"\n{json.dumps(summarize(tracer.events))}\ntrace: {tracer.path}", file=sys.stderr)
     if args.post_comment:
         try:
-            posted = github.post_comment(args.number, comment_body(result))
+            posted = github.upsert_comment(args.number, comment_body(result), COMMENT_MARKER, LEGACY_COMMENT_TAILS)
         except GitHubError as error:
             print(f"could not post the comment: {error}", file=sys.stderr)
             return 3
-        print(f"posted: {posted['url']}", file=sys.stderr)
+        print(f"{'updated' if posted.get('updated') else 'posted'}: {posted['url']}", file=sys.stderr)
     return 0 if result.findings is not None else 1
 
 
