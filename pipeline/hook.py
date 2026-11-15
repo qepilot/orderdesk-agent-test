@@ -46,6 +46,19 @@ def decide(event: dict, root: str) -> tuple[bool, str]:
     return False, f"the tool '{tool}' is not available in this pipeline"
 
 
+def log_denial(event: dict, reason: str) -> None:
+    """Append the refused call to the file named by PIPELINE_HOOK_LOG (if set); the develop step prints it in the job log."""
+    target = os.environ.get("PIPELINE_HOOK_LOG")
+    if not target:
+        return
+    entry = {"tool": event.get("tool_name"), "input": json.dumps(event.get("tool_input") or {})[:300], "reason": reason[:300]}
+    try:
+        with open(target, "a", encoding="utf-8") as handle:
+            handle.write(json.dumps(entry) + "\n")
+    except OSError:
+        pass
+
+
 def deny(reason: str) -> str:
     return json.dumps({"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "deny",
                                               "permissionDecisionReason": reason}})
@@ -56,9 +69,11 @@ def main() -> int:
         event = json.load(sys.stdin)
         allowed, reason = decide(event, os.environ.get("PIPELINE_REPO_ROOT") or os.getcwd())
     except Exception as error:                 # fail closed
+        event = {}
         print(deny(f"guard hook error: {error}"))
         return 0
     if not allowed:
+        log_denial(event if isinstance(event, dict) else {}, reason)
         print(deny(reason))
     return 0
 

@@ -162,6 +162,24 @@ def test_gates_report_failing_pytest_and_ruff(repo):
     assert statuses(result)["pytest"] == "fail" and statuses(result)["ruff"] == "fail" and not result["ok"]
 
 
+def test_gates_install_the_projects_requirements_first_from_wheels_only(repo):
+    (repo / "restaurant" / "tests").mkdir(parents=True)
+    (repo / "restaurant" / "requirements.txt").write_text("fastapi>=0.110\n")
+    (repo / "restaurant" / "tests" / "test_a.py").write_text("def test_a():\n    pass\n")
+    commands = []
+
+    def recording(command, root, timeout=900):
+        commands.append(command)
+        return 0, "ok"
+
+    result = gates.run_gates(str(repo), run=recording)
+    install = next(c for c in commands if "pip" in c and "install" in c)
+    assert "--only-binary=:all:" in install and install[-2:] == ["-r", "restaurant/requirements.txt"]
+    assert statuses(result)["install_requirements"] == "pass"
+    failing = gates.run_gates(str(repo), run=lambda command, root, timeout=900: (1 if "pip" in command else 0, "no matching wheel"))
+    assert statuses(failing)["install_requirements"] == "fail" and not failing["ok"]
+
+
 def test_gates_ignore_cache_directories(repo):
     (repo / "restaurant" / "tests").mkdir(parents=True)
     (repo / "restaurant" / "tests" / "test_a.py").write_text("def test_a():\n    pass\n")

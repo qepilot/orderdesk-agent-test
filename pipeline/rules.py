@@ -205,6 +205,15 @@ def _segment_verdict(segment: str, root: str, cwd: str | None) -> tuple[bool, st
         if _ENV_REF.search(arg):
             return False, "environment variable references are not allowed"
 
+    if name == "cd":
+        # Only into restaurant/. Later paths in the same command are still checked from the repository root, which can only
+        # over-refuse: any path that would leave restaurant/ after the cd climbs above the root in that check and is denied.
+        rel = _repo_path(rest[0], root, cwd) if len(rest) == 1 else None
+        if rel is not None and (rel == "restaurant" or rel.startswith("restaurant/")):
+            return True, ""
+        return False, "cd is only allowed into restaurant/"
+    if name in {"pip", "pip3"}:
+        return _pip_verdict(rest, root, cwd)
     if name in {"python", "python3"}:
         return _python_verdict(rest, root, cwd)
     if name in {"pytest", "ruff"}:
@@ -247,17 +256,42 @@ def _segment_verdict(segment: str, root: str, cwd: str | None) -> tuple[bool, st
                    "ls/cat/head/tail/grep/find, mkdir/touch/cp/mv/rm inside restaurant/")
 
 
+PIP_SAFE_FLAGS = {"-q", "--quiet", "-qq", "--disable-pip-version-check", "--no-input", "--no-cache-dir", "--no-warn-script-location",
+                  "--only-binary=:all:", "--upgrade", "-U"}
+
+
+def _pip_verdict(args: list[str], root: str, cwd: str | None) -> tuple[bool, str]:
+    """Only `pip install -r restaurant/requirements*.txt` (with harmless flags). Never a bare package name, a URL or an index:
+    the packages come from a requirements file that is part of the reviewed change."""
+    message = "only 'pip install -r restaurant/requirements.txt' is allowed (optional flags: -q, --no-cache-dir, --only-binary=:all:)"
+    if not args or args[0] != "install":
+        return False, message
+    files, index = [], 1
+    while index < len(args):
+        arg = args[index]
+        if arg in PIP_SAFE_FLAGS:
+            index += 1
+        elif arg in {"-r", "--requirement"} and index + 1 < len(args):
+            files.append(args[index + 1])
+            index += 2
+        else:
+            return False, message
+    if not files:
+        return False, message
+    for path in files:
+        rel = _repo_path(path, root, cwd)
+        if rel is None or not re.fullmatch(r"restaurant/requirements[A-Za-z0-9._-]*\.txt", rel):
+            return False, message
+    return True, ""
+
+
 def _python_verdict(rest: list[str], root: str, cwd: str | None) -> tuple[bool, str]:
     if not rest:
         return False, "interactive python is not allowed"
     if rest[0] == "-m":
         module = rest[1] if len(rest) > 1 else ""
         if module == "pip":
-            tail = [a for a in rest[2:] if a not in {"-q", "--quiet"}]
-            if (len(tail) == 3 and tail[0] == "install" and tail[1] == "-r"
-                    and re.fullmatch(r"restaurant/requirements[A-Za-z0-9._-]*\.txt", tail[2])):
-                return True, ""
-            return False, "only 'python -m pip install -r restaurant/requirements*.txt' is allowed"
+            return _pip_verdict(rest[2:], root, cwd)
         if module == "playwright":
             return (True, "") if rest[2:] == ["install", "chromium"] else (False, "only 'playwright install chromium'")
         if module in PYTHON_MODULES:

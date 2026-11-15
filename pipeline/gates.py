@@ -98,6 +98,11 @@ def run_gates(root: str, *, run=run_cmd) -> dict:
     else:
         add("tests_present", "pass", f"{len(tests)} test files")
 
+    requirements_file = Path(root, "restaurant", "requirements.txt")
+    if requirements_file.is_file():
+        rc, out = run([sys.executable, "-m", "pip", "install", "-q", "--only-binary=:all:", "-r", "restaurant/requirements.txt"], root, 600)
+        add("install_requirements", "pass" if rc == 0 else "fail", out)
+
     py_present = any(Path(root, "restaurant").rglob("*.py")) if Path(root, "restaurant").is_dir() else False
     if py_present:
         rc, out = run([sys.executable, "-m", "ruff", "check", "restaurant"], root)

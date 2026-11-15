@@ -141,3 +141,31 @@ def test_develop_reports_success_and_timeouts(monkeypatch, tmp_path):
     monkeypatch.setattr(agent, "run_claude", lambda *a, **k: {"returncode": -1, "timed_out": True, "stderr": "", "data": {}})
     timed_out = agent.develop(CONTEXT, 1, tmp_path / "o2", str(tmp_path), environ={})
     assert timed_out["ok"] is False and timed_out["timed_out"] is True
+
+
+# ---------------------------------------------------------------- denial log
+
+def test_denials_are_logged_when_a_log_file_is_configured(monkeypatch, capsys, tmp_path):
+    log = tmp_path / "denials.jsonl"
+    monkeypatch.setenv("PIPELINE_HOOK_LOG", str(log))
+    run_main(monkeypatch, capsys, json.dumps(event("Bash", command="pip install fastapi")))
+    entries = [json.loads(line) for line in log.read_text().splitlines()]
+    assert entries[0]["tool"] == "Bash" and "pip install fastapi" in entries[0]["input"] and "only 'pip install -r" in entries[0]["reason"]
+
+
+def test_allowed_calls_are_not_logged(monkeypatch, capsys, tmp_path):
+    log = tmp_path / "denials.jsonl"
+    monkeypatch.setenv("PIPELINE_HOOK_LOG", str(log))
+    run_main(monkeypatch, capsys, json.dumps(event("Bash", command="git status")))
+    assert not log.exists()
+
+
+def test_develop_prints_the_denials_and_counts_them(monkeypatch, tmp_path, capsys):
+    def fake_run(command, prompt, *, cwd, env, timeout):
+        with open(env["PIPELINE_HOOK_LOG"], "a") as handle:
+            handle.write(json.dumps({"tool": "Bash", "input": "{\"command\": \"pip install x\"}", "reason": "not allowed"}) + "\n")
+        return {"returncode": 0, "timed_out": False, "stderr": "", "data": {"result": "done"}}
+
+    monkeypatch.setattr(agent, "run_claude", fake_run)
+    summary = agent.develop(CONTEXT, 1, tmp_path / "o", str(tmp_path), environ={})
+    assert summary["denials"] == 1 and "hook denied Bash: not allowed" in capsys.readouterr().out

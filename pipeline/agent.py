@@ -36,6 +36,8 @@ Hard rules (some are also enforced by code, but you must follow them anyway):
 - If an acceptance criterion is ambiguous, contradicts the charter, or a dependency you need is missing: do not guess.
   Stop and end your final message with a line starting with 'BLOCKED:' followed by the question.
 - Write tests that prove each acceptance criterion. Name tests so the criterion they cover is obvious.
+- Run every command from the repository root with paths such as `restaurant/...`; do not `cd`.
+- Install dependencies with `pip install -r restaurant/requirements.txt` (list every package you need in that file first).
 - Run `python -m ruff check restaurant` and `python -m pytest restaurant -q` and fix problems until both pass.
 - Your final message: a short summary, then a list mapping each acceptance criterion to the test that covers it."""
 
@@ -120,15 +122,20 @@ def develop(context: dict, attempt: int, out_dir: Path, root: str, *, feedback: 
     env = clean_env(dict(os.environ if environ is None else environ))
     env["PIPELINE_REPO_ROOT"] = os.path.realpath(root)
     env["PYTHONPATH"] = os.path.realpath(root)          # lets the hook import the pipeline package
+    hook_log = out_dir / f"hook-denials-attempt-{attempt}.jsonl"
+    env["PIPELINE_HOOK_LOG"] = str(hook_log)
     result = run_claude(build_command(str(settings_path), model=model, budget_usd=budget_usd),
                         developer_prompt(context, attempt, feedback), cwd=root, env=env, timeout=timeout)
     data = result["data"]
+    denials = [json.loads(line) for line in hook_log.read_text(encoding="utf-8").splitlines() if line.strip()] if hook_log.exists() else []
+    for denial in denials[:30]:
+        print(f"hook denied {denial['tool']}: {denial['reason']} | {denial['input']}")
     final_text = str(data.get("result", ""))
     blocked = any(line.strip().upper().startswith("BLOCKED:") for line in final_text.splitlines())
     summary = {"attempt": attempt, "ok": result["returncode"] == 0 and not data.get("is_error") and not blocked
                and not result["timed_out"] and bool(data),
                "blocked": blocked, "timed_out": result["timed_out"], "turns": data.get("num_turns"),
-               "cost_usd": data.get("total_cost_usd"), "final_message": final_text[-6000:],
+               "cost_usd": data.get("total_cost_usd"), "final_message": final_text[-6000:], "denials": len(denials),
                "error": "" if result["returncode"] == 0 else (result["stderr"] or result.get("stdout_tail", ""))[-800:]}
     (out_dir / f"developer-attempt-{attempt}.json").write_text(json.dumps({"summary": summary, "raw": data}, indent=2),
                                                               encoding="utf-8")
