@@ -19,6 +19,7 @@ CHECKS: list[tuple[str, list[str]]] = [
             "restaurant",
             "-q",
             "--cov=restaurant/app",
+            "--cov=restaurant/db",
             "--cov-fail-under=85",
         ],
     ),

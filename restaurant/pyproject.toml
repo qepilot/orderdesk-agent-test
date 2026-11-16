@@ -10,7 +10,7 @@ testpaths = ["tests"]
 addopts = "-ra"
 
 [tool.coverage.run]
-source = ["restaurant/app"]
+source = ["restaurant/app", "restaurant/db"]
 
 [tool.coverage.report]
 fail_under = 85
