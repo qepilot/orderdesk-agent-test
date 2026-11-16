@@ -26,10 +26,8 @@ def _git(root: str, *args: str, token: str = "") -> subprocess.CompletedProcess:
 
 
 def stage_and_commit(root: str, number: int, title: str) -> tuple[bool, str]:
-    # only pass paths that exist: git add refuses the whole command if a pathspec matches nothing
+    # only pass a path that exists: git add refuses the whole command if a pathspec matches nothing
     paths = [p for p in ("restaurant",) if Path(root, p).exists()]
-    paths += sorted(str(w.relative_to(root)) for pattern in ("restaurant-*.yml", "restaurant-*.yaml")
-                    for w in Path(root, ".github", "workflows").glob(pattern))
     if paths:
         _git(root, "add", "-A", "--", *paths)
     staged = _git(root, "diff", "--cached", "--name-only").stdout.split()

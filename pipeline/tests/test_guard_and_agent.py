@@ -17,7 +17,9 @@ def event(tool, **tool_input):
 @pytest.mark.parametrize("ev,allowed", [
     (event("Write", file_path="/repo/restaurant/app/main.py"), True),
     (event("Edit", file_path="restaurant/app/main.py"), True),
-    (event("MultiEdit", file_path="/repo/.github/workflows/restaurant-ci.yml"), True),
+    (event("MultiEdit", file_path="/repo/restaurant/ci/restaurant-ci.yml"), True),
+    (event("MultiEdit", file_path="/repo/.github/workflows/restaurant-ci.yml"), False),
+    (event("Write", file_path="/repo/.github/workflows/new.yml"), False),
     (event("Write", file_path="/repo/pipeline/rules.py"), False),
     (event("Write", file_path="/repo/.github/workflows/claude-develop.yml"), False),
     (event("Edit", file_path="/etc/passwd"), False),

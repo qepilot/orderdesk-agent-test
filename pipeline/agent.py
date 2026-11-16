@@ -26,7 +26,8 @@ KEEP_SECRETS = {"CLAUDE_CODE_OAUTH_TOKEN"}
 SYSTEM_PROMPT = """You are an automated developer working on exactly one GitHub issue of a restaurant ordering system.
 
 Hard rules (some are also enforced by code, but you must follow them anyway):
-- Work only inside the restaurant/ directory (and .github/workflows/restaurant-*.yml when the issue asks for CI). Never touch anything else.
+- Work only inside the restaurant/ directory. Never create or change anything else, in particular nothing under .github/:
+  workflow files are never written by the automation. When an issue wants a CI workflow, write it as a template under restaurant/ci/ for a person to install.
 - Do not run git commit, git push or change git state. The pipeline does that after checking your work.
 - Implement only the scope of this issue. Do not start work that belongs to other issues, even if it looks helpful.
 - Follow the project charter that is provided. Money is integer cents. SQL only in the repository layer, always parameterised.

@@ -23,7 +23,7 @@ The issue gets one status comment that is edited as the run advances (started, t
 
 | Risk | Enforced by |
 |---|---|
-| Agent edits files outside `restaurant/` (including `pipeline/` and these workflows) | PreToolUse hook on every Write/Edit; path gate after the run; staging only allow-listed paths |
+| Agent edits files outside `restaurant/` (including `pipeline/`, `.github/` and these workflows) | PreToolUse hook on every Write/Edit; path gate after the run; staging only allow-listed paths |
 | Agent runs a dangerous command (`git push`, `curl`, `python -c`, `env`, redirects outside `restaurant/`, ...) | Hook with a deny-by-default command allow-list (`pipeline/rules.py`), plus `dontAsk` permission mode |
 | Agent reads `.git/` or files outside the repository | Hook on Read, Glob, Grep and Bash |
 | Agent pushes or merges | It has no GitHub token (environment scrubbed, `persist-credentials: false`); only the publish step has one, and it only pushes `claude/issue-*` branches. Never the default branch, never a merge |
@@ -35,6 +35,10 @@ The issue gets one status comment that is edited as the run advances (started, t
 | Starting a task whose dependencies are not merged | Preflight checks the `Depends on` issues are closed |
 
 The prompt asks the agent to follow these rules too, but nothing above relies on that. In a probe with the rules removed from the prompt, the hook alone refused 9 of 9 forbidden actions (writes outside `restaurant/`, edits to `pipeline/` and the workflows, `git push`, `curl`, reading `.git/config`, `cat /etc/passwd`, `env`, a redirect outside the repo) and allowed the control write.
+
+## The agent never writes workflow files
+
+Only `restaurant/` is writable. GitHub refuses a push that creates or changes `.github/workflows/*` when it comes from the built-in token (a real run hit exactly that), and allowing it would also be unsafe: a workflow on a pull request branch runs with the repository's secrets. When an issue wants CI, the agent writes a template under `restaurant/ci/` (for example `restaurant-ci.yml`) and a person copies it into `.github/workflows/` after reading it. The checks themselves live in one local command, `python restaurant/scripts/check.py`, which the template, the pipeline's gates and people all run.
 
 ## One-time setup
 

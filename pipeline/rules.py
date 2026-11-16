@@ -13,7 +13,6 @@ import re
 import shlex
 
 MAX_CHANGED_LINES = 800                       # the charter says ~600; this is the hard stop
-ALLOWED_WORKFLOW = re.compile(r"\.github/workflows/restaurant-[A-Za-z0-9._-]+\.ya?ml")
 CACHE_PARTS = {"__pycache__", ".pytest_cache", ".ruff_cache", ".mypy_cache", ".hypothesis", ".venv", "node_modules"}
 CACHE_FILES = {".coverage"}
 TRUSTED_ASSOCIATIONS = {"OWNER", "MEMBER", "COLLABORATOR"}
@@ -94,9 +93,9 @@ def write_allowed(rel: str) -> bool:
     parts = rel.split("/")
     if rel == "." or ".." in parts or ".git" in parts:
         return False
-    if parts[0] == "restaurant" and len(parts) >= 2:
-        return True
-    return bool(ALLOWED_WORKFLOW.fullmatch(rel))
+    # Only restaurant/. Never .github/: GitHub does not let the automation push workflow files, and a workflow on a pull
+    # request branch runs with the repository's secrets. A person installs any workflow after reviewing a template.
+    return parts[0] == "restaurant" and len(parts) >= 2
 
 
 def read_allowed(rel: str | None) -> bool:
@@ -247,7 +246,7 @@ def _segment_verdict(segment: str, root: str, cwd: str | None) -> tuple[bool, st
         for path in paths:
             rel = _repo_path(path, root, cwd)
             if rel is None or not write_allowed(rel):
-                return False, f"{name} on '{path}' is not allowed (only restaurant/ and restaurant workflows)"
+                return False, f"{name} on '{path}' is not allowed (only inside restaurant/)"
             if name == "rm" and ("*" in path or "?" in path) and any("r" in f.lower() for f in flags):
                 return False, "recursive rm with wildcards is not allowed"
             if name == "rm" and any("r" in f.lower() for f in flags) and len(rel.split("/")) < 3:
