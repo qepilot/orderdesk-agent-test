@@ -126,6 +126,18 @@ def test_gates_catch_changes_outside_the_allowed_area(repo):
     assert "assistant/llm.py" in [c for c in result["checks"] if c["name"] == "paths"][0]["detail"]
 
 
+def test_a_workflow_file_is_refused_by_the_gates_and_never_staged(repo):
+    (repo / "restaurant").mkdir()
+    (repo / "restaurant" / "a.txt").write_text("x\n")
+    (repo / ".github" / "workflows").mkdir(parents=True)
+    (repo / ".github" / "workflows" / "restaurant-ci.yml").write_text("on: push\n")
+    result = gates.run_gates(str(repo), run=ok_runner)
+    assert statuses(result)["paths"] == "fail" and not result["ok"]
+    ok, _ = publish_mod.stage_and_commit(str(repo), 6, "Scaffold")
+    shown = subprocess.run(["git", "-C", str(repo), "show", "--name-only", "--format=", "HEAD"], capture_output=True, text=True).stdout
+    assert ok and "restaurant/a.txt" in shown and ".github" not in shown
+
+
 def test_gates_catch_modified_tracked_files_outside_the_area(repo):
     (repo / "README.md").write_text("changed\n")
     (repo / "restaurant").mkdir()

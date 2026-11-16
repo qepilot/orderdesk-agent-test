@@ -32,7 +32,7 @@ def decide(event: dict, root: str) -> tuple[bool, str]:
         path = str(data.get(WRITE_TOOLS[tool], ""))
         rel = to_repo_rel(path, root, cwd) if path else None
         if rel is None or not write_allowed(rel):
-            return False, f"{tool} on '{path}' is not allowed: only files under restaurant/ and restaurant workflows"
+            return False, f"{tool} on '{path}' is not allowed: only files under restaurant/"
         return True, ""
     if tool in READ_TOOLS:
         path = data.get(READ_TOOLS[tool])
