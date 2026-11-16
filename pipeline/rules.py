@@ -205,6 +205,7 @@ def _segment_verdict(segment: str, root: str, cwd: str | None) -> tuple[bool, st
         if _ENV_REF.search(arg):
             return False, "environment variable references are not allowed"
 
+    name = VENV_TOOLS.get(name[2:] if name.startswith("./") else name, name)
     if name == "cd":
         # Only into restaurant/. Later paths in the same command are still checked from the repository root, which can only
         # over-refuse: any path that would leave restaurant/ after the cd climbs above the root in that check and is denied.
@@ -256,6 +257,10 @@ def _segment_verdict(segment: str, root: str, cwd: str | None) -> tuple[bool, st
                    "ls/cat/head/tail/grep/find, mkdir/touch/cp/mv/rm inside restaurant/")
 
 
+# The one virtualenv the agent may use. Inside the sandbox only the repository (and temp) is writable, so the runner's
+# system site-packages cannot be installed into; a venv in the repository can. It is git-ignored and never committed.
+VENV_TOOLS = {".venv/bin/python": "python", ".venv/bin/python3": "python", ".venv/bin/pip": "pip", ".venv/bin/pip3": "pip",
+              ".venv/bin/pytest": "pytest", ".venv/bin/ruff": "ruff"}
 PIP_SAFE_FLAGS = {"-q", "--quiet", "-qq", "--disable-pip-version-check", "--no-input", "--no-cache-dir", "--no-warn-script-location",
                   "--only-binary=:all:", "--upgrade", "-U"}
 
@@ -290,6 +295,11 @@ def _python_verdict(rest: list[str], root: str, cwd: str | None) -> tuple[bool, 
         return False, "interactive python is not allowed"
     if rest[0] == "-m":
         module = rest[1] if len(rest) > 1 else ""
+        if module == "venv":
+            tail = rest[2:]
+            if tail and tail[-1] == ".venv" and set(tail[:-1]) <= {"--system-site-packages"}:
+                return True, ""
+            return False, "only 'python -m venv [--system-site-packages] .venv' is allowed"
         if module == "pip":
             return _pip_verdict(rest[2:], root, cwd)
         if module == "playwright":
