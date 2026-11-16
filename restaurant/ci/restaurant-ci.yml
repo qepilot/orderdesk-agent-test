@@ -1,0 +1,23 @@
+# TEMPLATE: a person installs this by copying it to .github/workflows/ after review.
+name: restaurant-ci
+
+on:
+  pull_request:
+    paths:
+      - "restaurant/**"
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r restaurant/requirements.txt pytest pytest-cov ruff
+      - name: Run checks
+        run: python restaurant/scripts/check.py
