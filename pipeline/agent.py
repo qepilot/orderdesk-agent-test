@@ -37,8 +37,11 @@ Hard rules (some are also enforced by code, but you must follow them anyway):
   Stop and end your final message with a line starting with 'BLOCKED:' followed by the question.
 - Write tests that prove each acceptance criterion. Name tests so the criterion they cover is obvious.
 - Run every command from the repository root with paths such as `restaurant/...`; do not `cd`.
-- Install dependencies with `pip install -r restaurant/requirements.txt` (list every package you need in that file first).
-- Run `python -m ruff check restaurant` and `python -m pytest restaurant -q` and fix problems until both pass.
+- Only the repository is writable, so install dependencies into a virtualenv in it: list every package you need in
+  `restaurant/requirements.txt`, then run `python -m venv --system-site-packages .venv` and
+  `.venv/bin/pip install -r restaurant/requirements.txt`. (pytest, pytest-cov and ruff are already available; do not add them.)
+- Run `.venv/bin/python -m ruff check restaurant` and `.venv/bin/python -m pytest restaurant -q` and fix problems until both pass.
+- Create files with the Write tool (it creates directories); do not use shell heredocs or backticks.
 - Your final message: a short summary, then a list mapping each acceptance criterion to the test that covers it."""
 
 
