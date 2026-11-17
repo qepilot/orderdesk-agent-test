@@ -11,14 +11,14 @@ When a step has a **✅ Check**, do not move on until you see what it describes.
 ## 1. Get the code
 
 ```bash
-git clone https://github.com/thehungrycoder/ai-learning-agent.git
+git clone https://github.com/qepilot/orderdesk-agent-test.git
 ```
 
 ```bash
-cd ai-learning-agent/github-engineering-assistant
+cd orderdesk-agent-test
 ```
 
-✅ **Check:** `ls` shows `README.md`, `assistant`, `docs`, `lab`, `study`, `tests`, `workshop`.
+✅ **Check:** `ls` includes `README.md`, `assistant`, `docs`, `lab`, `study`, `tests`, `workshop`.
 
 The repository also contains `offer-scout/`, an earlier, archived course. The two are independent; each has its
 own virtual environment and requirements.
@@ -104,7 +104,7 @@ Useful: **Kernel → Restart Kernel and Run All Cells** reruns everything from t
 ### Option B: VS Code
 
 1. Install the **Python** and **Jupyter** extensions.
-2. Open the `github-engineering-assistant` folder (*File → Open Folder*).
+2. Open the `orderdesk-agent-test` folder (*File → Open Folder*).
 3. Open `study/module_1_basic_agent.ipynb`.
 4. **Select Kernel** (top right) → *Python Environments* → the one in `.venv`.
 
