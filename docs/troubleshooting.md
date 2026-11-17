@@ -6,7 +6,7 @@ Find the symptom, apply the fix. If it is not here: *Kernel → Restart Kernel a
 
 | Symptom | Cause and fix |
 |---|---|
-| `ModuleNotFoundError: No module named 'assistant'` | The first cell of the module was not run, or Jupyter was started outside the course folder. Run the first cell; start Jupyter from `github-engineering-assistant/`. |
+| `ModuleNotFoundError: No module named 'assistant'` | The first cell of the module was not run, or Jupyter was started outside the course folder. Run the first cell; start Jupyter from `the repository root/`. |
 | `ModuleNotFoundError: No module named 'httpx'` (or `pydantic`, `dotenv`) | The virtual environment is not active, or the notebook uses another kernel. Activate `.venv`; in VS Code choose the `.venv` kernel. |
 | `ModuleNotFoundError: No module named 'mcp.server.fastmcp'`, or an error mentioning `MCPServer` | An older `mcp` package (1.x) is installed. This course uses the 2.x API: `pip install -r requirements.txt` again. |
 | `FileNotFoundError: Start Jupyter (or Python) from inside the course folder.` | The working directory is outside the repository. `cd` into the course folder and restart. |
@@ -20,7 +20,7 @@ Find the symptom, apply the fix. If it is not here: *Kernel → Restart Kernel a
 
 | Symptom | Cause and fix |
 |---|---|
-| `LLM NOT ready: ... (set LLM_MODEL in .env)` | `.env` is missing, in the wrong folder, or incomplete. It must be `github-engineering-assistant/.env`. Restart the kernel after editing it. |
+| `LLM NOT ready: ... (set LLM_MODEL in .env)` | `.env` is missing, in the wrong folder, or incomplete. It must be `.env` in the repository root. Restart the kernel after editing it. |
 | `ModelError: auth: HTTP 401` | Wrong or expired key, or a key for a different endpoint than `LLM_BASE_URL`. |
 | `ModelError: not_found: HTTP 404` | The model id does not exist at this endpoint, or `LLM_BASE_URL` lacks the `/v1` part. Copy the id from the endpoint's model list. |
 | `ModelError: bad_request: HTTP 400` mentioning `temperature` | Your model rejects the parameter. Remove `LLM_TEMPERATURE` from `.env`. |

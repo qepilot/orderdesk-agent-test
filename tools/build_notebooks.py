@@ -8,7 +8,7 @@ The .md file is the source. Rules:
 - Markdown is split into a new cell at every top-level heading and at a line
   that is exactly <!-- cell -->.
 
-Usage (from the github-engineering-assistant/ folder):
+Usage (from the repository root):
     python tools/build_notebooks.py            # rebuild every study/*.ipynb
     python tools/build_notebooks.py --check    # fail if a notebook is stale
 """
